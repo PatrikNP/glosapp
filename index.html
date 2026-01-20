@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FF6B6B">
+    <meta name="description" content="Glosträning för Ebbe & Tove">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Glosträning - Ebbe & Tove</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 50%, #4ECDC4 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-left: max(20px, env(safe-area-inset-left));
+            padding-right: max(20px, env(safe-area-inset-right));
+            animation: gradientShift 10s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            font-weight: 800;
+        }
+
+        .user-select, .mode-select {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            min-height: 44px; /* Apple's recommended touch target size */
+            touch-action: manipulation; /* Prevents double-tap zoom */
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #FF8E53, #FF6B6B);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-secondary.active {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .quiz-area {
+            margin-top: 30px;
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, #FFF9E6 0%, #E8F5F7 100%);
+            padding: 35px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+        }
+
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            padding: 3px;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+        }
+
+        .question {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .hint {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 15px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .clue-button {
+            background: linear-gradient(135deg, #FFE66D, #FFBE0B);
+            color: #333;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(255, 230, 109, 0.4);
+            font-weight: 600;
+        }
+
+        .clue-button:hover {
+            background: linear-gradient(135deg, #FFBE0B, #FFE66D);
+            transform: translateY(-2px);
+        }
+
+        .clue-box {
+            background: linear-gradient(135deg, #FFF9E6, #FFFACD);
+            border: 2px solid #FFE66D;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #666;
+            box-shadow: 0 4px 12px rgba(255, 230, 109, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #FF6B6B;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+            transform: scale(1.01);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.3em;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .feedback.correct {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 2px solid #28a745;
+            animation: scaleIn 0.3s ease;
+        }
+
+        .feedback.incorrect {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 2px solid #dc3545;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .week-card {
+            background: linear-gradient(135deg, #FFF9E6, #E8F5F7);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 2px solid transparent;
+        }
+
+        .week-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border-color: #FF6B6B;
+        }
+
+        .week-card h3 {
+            color: #FF6B6B;
+            margin-bottom: 8px;
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+
+        .week-card p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .admin-section {
+            margin-top: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .word-list {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+        }
+
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .delete-btn {
+            padding: 8px 15px;
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #c82333, #dc3545);
+            transform: scale(1.05);
+        }
+
+        .progress-card {
+            background: linear-gradient(135deg, #FFF9E6, #E8F5F7);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #FF6B6B;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .results-history {
+            margin-top: 20px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .sync-status {
+            text-align: center;
+            padding: 10px;
+            background: rgba(78, 205, 196, 0.2);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #44A08D;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .week-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .user-select, .mode-select {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            .question {
+                font-size: 1.2em;
+            }
+            .hint {
+                font-size: 1em;
+            }
+            input[type="text"] {
+                font-size: 16px;
+                padding: 12px;
+            }
+            .controls {
+                gap: 8px;
+            }
+            .controls button {
+                flex: 1;
+                min-width: 120px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .history-item {
+                flex-direction: column;
+                gap: 5px;
+                text-align: left;
+            }
+            .question-card {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                padding: 15px;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 1.6em;
+                margin-bottom: 20px;
+            }
+            .user-select button,
+            .mode-select button {
+                width: 100%;
+                padding: 12px;
+            }
+            .week-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            .controls button {
+                width: 100%;
+            }
+            .question {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 Glosträning 🌟</h1>
+        
+        <div id="syncStatus" class="sync-status hidden">
+            Synkar med Firebase...
+        </div>
+
+        <div class="user-select">
+            <button class="btn-secondary" onclick="selectUser('ebbe')">Ebbe</button>
+            <button class="btn-secondary" onclick="selectUser('tove')">Tove</button>
+            <button class="btn-secondary" onclick="showAdmin()">Admin</button>
+            <button class="btn-secondary" onclick="showProgress()">Framsteg</button>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quizSection" class="hidden">
+            <div id="weekSelection">
+                <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Välj vecka att träna</h2>
+                <div id="weekGrid" class="week-grid"></div>
+            </div>
+
+            <div id="quizArea" class="quiz-area hidden"></div>
+        </div>
+
+        <!-- Admin Section -->
+        <div id="adminSection" class="admin-section hidden">
+            <h2 style="text-align: center; background: linear-gradient(135deg, #FF6B6B, #4ECDC4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 20px; font-weight: 800;">Admin Panel</h2>
+            
+            <div class="form-group">
+                <label>Välj användare</label>
+                <select id="adminUser">
+                    <option value="ebbe">Ebbe</option>
+                    <option value="tove">Tove</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Vecka (t.ex. "Vecka 3")</label>
+                <input type="text" id="weekInput" placeholder="Vecka 3">
+            </div>
+
+            <div class="form-group">
+                <label>Svenska</label>
+                <input type="text" id="swedishWord" placeholder="Svenska ordet">
+            </div>
+
+            <div class="form-group">
+                <label>Engelska</label>
+                <input type="text" id="englishWord" placeholder="Engelska ordet">
+            </div>
+
+            <div class="form-group">
+                <label>Ledtråd (valfritt)</label>
+                <input type="text" id="clueInput" placeholder="Valfri ledtråd">
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <button class="btn-primary" onclick="addWord()" style="flex: 1; min-width: 200px;">Lägg till glosor</button>
+                <button class="btn-secondary" onclick="resetDatabase()" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; flex: 1; min-width: 200px;">🔄 Återställ databas</button>
+            </div>
+
+            <div class="word-list" id="wordList"></div>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="admin-section hidden">
+            <h2 style="text-align: center; background: linear-gradient(135deg, #FF6B6B, #4ECDC4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 20px; font-weight: 800;">Framsteg</h2>
+            
+            <div class="form-group">
+                <label>Välj användare</label>
+                <select id="progressUser" onchange="displayProgress()">
+                    <option value="ebbe">Ebbe</option>
+                    <option value="tove">Tove</option>
+                </select>
+            </div>
+
+            <button class="btn-secondary" onclick="resetProgress()" style="margin-bottom: 20px;">Rensa framsteg</button>
+
+            <div id="progressDisplay"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, update, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZjOBDcyyLMQZDeQPKK0bpdRSh3prLs0M",
+            authDomain: "patrikapps-cd169.firebaseapp.com",
+            databaseURL: "https://patrikapps-cd169-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "patrikapps-cd169",
+            storageBucket: "patrikapps-cd169.firebasestorage.app",
+            messagingSenderId: "334803684499",
+            appId: "1:334803684499:web:13c0f00c357ad5c97ed166"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Global variables
+        let vocabulary = { 
+            ebbe: [], 
+            tove: [
+                { week: "Vecka 4", swedish: "jag letar efter", english: "I'm looking for", clue: "" },
+                { week: "Vecka 4", swedish: "kjol", english: "skirt", clue: "" },
+                { week: "Vecka 4", swedish: "kläder", english: "clothes", clue: "" },
+                { week: "Vecka 4", swedish: "prova", english: "try on", clue: "" },
+                { week: "Vecka 4", swedish: "tajt", english: "tight", clue: "" },
+                { week: "Vecka 4", swedish: "storlek", english: "size", clue: "" },
+                { week: "Vecka 4", swedish: "önska", english: "wish", clue: "" },
+                { week: "Vecka 4", swedish: "vet du det?", english: "do you know that?", clue: "" },
+                { week: "Vecka 4", swedish: "passa", english: "suit", clue: "" },
+                { week: "Vecka 4", swedish: "Skämtar du?", english: "Are you kidding?", clue: "" },
+                { week: "Vecka 4", swedish: "överdel", english: "top", clue: "" },
+                { week: "Vecka 4", swedish: "halsduk", english: "scarf", clue: "" },
+                { week: "Vecka 4", swedish: "provrum", english: "fitting room", clue: "" },
+                { week: "Vecka 4", swedish: "där borta", english: "over there", clue: "" },
+                { week: "Vecka 4", swedish: "några fler", english: "any more", clue: "" },
+                { week: "Vecka 4", swedish: "för kort", english: "too short", clue: "" },
+                { week: "Vecka 4", swedish: "i min storlek", english: "in my size", clue: "" },
+                { week: "Vecka 4", swedish: "ta bussen", english: "catch a bus", clue: "" },
+                { week: "Vecka 4", swedish: "värld", english: "world", clue: "" },
+                { week: "Vecka 4", swedish: "den bästa som finns", english: "the best there is", clue: "" }
+            ] 
+        };
+        let results = { ebbe: [], tove: [] };
+        window.vocabulary = vocabulary;
+        window.results = results;
+        window.currentUser = '';
+        window.currentWeek = '';
+        window.direction = 'sv-en';
+        window.currentWords = [];
+        window.currentQuestionIndex = 0;
+        window.score = 0;
+        window.totalAnswered = 0;
+        window.askedQuestions = [];
+        window.wrongAnswers = []; // Spara fel svar
+        window.partialAnswers = []; // Spara nästan rätt svar
+
+        // Firebase functions - exposed globally
+        window.saveVocabulary = async function() {
+            try {
+                showSyncStatus();
+                await set(ref(database, 'vocabulary'), vocabulary);
+                console.log('Vocabulary saved to Firebase');
+            } catch (error) {
+                console.error('Error saving vocabulary:', error);
+                alert('Kunde inte spara glosor till Firebase');
+            }
+        };
+
+        window.saveResults = async function() {
+            try {
+                showSyncStatus();
+                await set(ref(database, 'results'), results);
+                console.log('Results saved to Firebase');
+            } catch (error) {
+                console.error('Error saving results:', error);
+                alert('Kunde inte spara resultat till Firebase');
+            }
+        };
+
+        window.loadData = async function() {
+            try {
+                showSyncStatus();
+                
+                // Load vocabulary
+                const vocabSnapshot = await get(ref(database, 'vocabulary'));
+                if (vocabSnapshot.exists()) {
+                    const loadedVocab = vocabSnapshot.val();
+                    // Säkerställ att båda användarna finns
+                    vocabulary.ebbe = loadedVocab.ebbe || [];
+                    vocabulary.tove = loadedVocab.tove || [];
+                    window.vocabulary = vocabulary;
+                    console.log('Vocabulary loaded from Firebase');
+                } else {
+                    // Om ingen data finns, spara de förladdade glosorna
+                    console.log('No existing vocabulary found, saving initial data...');
+                    await saveVocabulary();
+                }
+
+                // Load results
+                const resultsSnapshot = await get(ref(database, 'results'));
+                if (resultsSnapshot.exists()) {
+                    const loadedResults = resultsSnapshot.val();
+                    // Säkerställ att båda användarna finns
+                    results.ebbe = loadedResults.ebbe || [];
+                    results.tove = loadedResults.tove || [];
+                    window.results = results;
+                    console.log('Results loaded from Firebase');
+                }
+
+                hideSyncStatus();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Kunde inte ladda data från Firebase. Kontrollera internetanslutning.');
+                hideSyncStatus();
+            }
+        };
+
+        function showSyncStatus() {
+            const status = document.getElementById('syncStatus');
+            status.classList.remove('hidden');
+        }
+
+        function hideSyncStatus() {
+            const status = document.getElementById('syncStatus');
+            setTimeout(() => status.classList.add('hidden'), 1000);
+        }
+
+        // Setup real-time listeners
+        onValue(ref(database, 'vocabulary'), (snapshot) => {
+            if (snapshot.exists()) {
+                const loadedVocab = snapshot.val();
+                vocabulary.ebbe = loadedVocab.ebbe || [];
+                vocabulary.tove = loadedVocab.tove || [];
+                window.vocabulary = vocabulary;
+                console.log('Real-time vocabulary update');
+            }
+        });
+
+        onValue(ref(database, 'results'), (snapshot) => {
+            if (snapshot.exists()) {
+                const loadedResults = snapshot.val();
+                results.ebbe = loadedResults.ebbe || [];
+                results.tove = loadedResults.tove || [];
+                window.results = results;
+                console.log('Real-time results update');
+            }
+        });
+
+        // Load data on startup
+        loadData();
+
+        // All your existing functions
+        window.selectUser = function(user) {
+            currentUser = user;
+            document.querySelectorAll('.user-select button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('quizSection').classList.remove('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('progressSection').classList.add('hidden');
+            document.getElementById('quizArea').classList.add('hidden');
+            document.getElementById('weekSelection').classList.remove('hidden');
+            showWeeks();
+        };
+
+        window.showWeeks = function() {
+            const userVocab = vocabulary[currentUser];
+            if (!userVocab || !Array.isArray(userVocab)) {
+                document.getElementById('weekGrid').innerHTML = '<p style="text-align: center; color: #999; grid-column: 1/-1;">Inga glosor tillagda än. Gå till Admin för att lägga till!</p>';
+                return;
+            }
+            
+            const weeks = [...new Set(userVocab.map(w => w.week))].sort();
+            const grid = document.getElementById('weekGrid');
+            
+            if (weeks.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #999; grid-column: 1/-1;">Inga glosor tillagda än. Gå till Admin för att lägga till!</p>';
+                return;
+            }
+
+            grid.innerHTML = weeks.map(week => {
+                const wordCount = userVocab.filter(w => w.week === week).length;
+                return `
+                    <div class="week-card" onclick="selectWeek('${week}')">
+                        <h3>${week}</h3>
+                        <p>${wordCount} glosor</p>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.selectWeek = function(week) {
+            currentWeek = week;
+            document.getElementById('weekSelection').classList.add('hidden');
+            document.getElementById('quizArea').classList.remove('hidden');
+            showModeSelection();
+        };
+
+        window.showModeSelection = function() {
+            document.getElementById('quizArea').innerHTML = `
+                <div class="question-card">
+                    <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Välj träningsriktning</h2>
+                    <div class="mode-select">
+                        <button class="btn-primary" onclick="startQuiz('sv-en')">Svenska → Engelska</button>
+                        <button class="btn-primary" onclick="startQuiz('en-sv')">Engelska → Svenska</button>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn-secondary" onclick="backToWeeks()">Tillbaka</button>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.backToWeeks = function() {
+            document.getElementById('weekSelection').classList.remove('hidden');
+            document.getElementById('quizArea').classList.add('hidden');
+            showWeeks();
+        };
+
+        window.startQuiz = function(dir) {
+            direction = dir || direction;
+            currentWords = vocabulary[currentUser].filter(w => w.week === currentWeek);
+            currentWords = currentWords.sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+            score = 0;
+            totalAnswered = 0;
+            askedQuestions = [];
+            wrongAnswers = [];
+            partialAnswers = [];
+            showQuestion();
+        };
+
+        window.showQuestion = function() {
+            if (currentQuestionIndex >= currentWords.length) {
+                showFinalScore();
+                return;
+            }
+
+            const word = currentWords[currentQuestionIndex];
+            const question = direction === 'sv-en' ? word.swedish : word.english;
+            const hint = direction === 'sv-en' ? 'Skriv på engelska' : 'Skriv på svenska';
+            const correctAnswer = direction === 'sv-en' ? word.english : word.swedish;
+
+            let html = `
+                <div class="question-card">
+                    <div class="question">${question}</div>
+                    <div class="hint">${hint}</div>
+                    <div id="clueArea"></div>
+                    <button class="clue-button" onclick="showLetterClue()">💡 Visa ledtråd (2 bokstäver)</button>
+            `;
+
+            if (word.clue && word.clue.trim() !== '') {
+                html += `<button class="clue-button" style="background: linear-gradient(135deg, #95E1D3, #38ADA9);" onclick="showCustomClue()">💬 Extra ledtråd</button>`;
+            }
+
+            html += `
+                    <input type="text" id="answerInput" placeholder="Skriv ditt svar här..." onkeypress="handleEnter(event)" autocomplete="off">
+                    <div class="controls">
+                        <button class="btn-primary" onclick="checkAnswer()">Svara</button>
+                        <button class="btn-secondary" onclick="skipQuestion()">Hoppa över</button>
+                    </div>
+                </div>
+                <div class="score" id="scoreDisplay"></div>
+            `;
+
+            document.getElementById('quizArea').innerHTML = html;
+            document.getElementById('answerInput').focus();
+            updateScore();
+        };
+
+        window.showLetterClue = function() {
+            const word = currentWords[currentQuestionIndex];
+            const correctAnswer = direction === 'sv-en' ? word.english : word.swedish;
+            const firstTwoLetters = correctAnswer.substring(0, 2);
+            const clueArea = document.getElementById('clueArea');
+            clueArea.innerHTML = `<div class="clue-box">💡 Börjar med: <strong>${firstTwoLetters}...</strong></div>`;
+        };
+
+        window.showCustomClue = function() {
+            const word = currentWords[currentQuestionIndex];
+            const clueArea = document.getElementById('clueArea');
+            const existingClue = clueArea.innerHTML;
+            if (existingClue.includes('Extra ledtråd')) {
+                return; // Redan visat
+            }
+            clueArea.innerHTML += `<div class="clue-box" style="background: linear-gradient(135deg, #E8F5F7, #D4F1F4); border-color: #4ECDC4;">💬 Extra ledtråd: ${word.clue}</div>`;
+        };
+
+        window.checkAnswer = function() {
+            const userAnswer = document.getElementById('answerInput').value.trim().toLowerCase();
+            const word = currentWords[currentQuestionIndex];
+            const correctAnswer = direction === 'sv-en' ? word.english.toLowerCase() : word.swedish.toLowerCase();
+
+            totalAnswered++;
+
+            let feedbackHtml = '';
+            let isCorrect = false;
+            let isPartial = false;
+
+            // Exakt rätt
+            if (userAnswer === correctAnswer) {
+                score += 1;
+                isCorrect = true;
+                feedbackHtml = `
+                    <div class="feedback correct">
+                        ✅ Helt rätt! <strong>+1 poäng</strong><br>
+                        ${word.swedish} = ${word.english}
+                    </div>
+                `;
+            } 
+            // Nästan rätt - liknar men inte exakt
+            else if (isSimilar(userAnswer, correctAnswer)) {
+                score += 0.5;
+                isPartial = true;
+                partialAnswers.push({
+                    word: word,
+                    userAnswer: userAnswer,
+                    correctAnswer: direction === 'sv-en' ? word.english : word.swedish,
+                    question: direction === 'sv-en' ? word.swedish : word.english
+                });
+                feedbackHtml = `
+                    <div class="feedback" style="background: linear-gradient(135deg, #fff3cd, #ffe69c); color: #856404; border: 2px solid #ffc107;">
+                        ⚠️ Nästan rätt! <strong>+0.5 poäng</strong><br>
+                        Du svarade: "${userAnswer}"<br>
+                        Rätt stavning: "${direction === 'sv-en' ? word.english : word.swedish}"<br>
+                        <small>${word.swedish} = ${word.english}</small>
+                    </div>
+                `;
+            }
+            // Helt fel
+            else {
+                wrongAnswers.push({
+                    word: word,
+                    userAnswer: userAnswer,
+                    correctAnswer: direction === 'sv-en' ? word.english : word.swedish,
+                    question: direction === 'sv-en' ? word.swedish : word.english
+                });
+                feedbackHtml = `
+                    <div class="feedback incorrect">
+                        ❌ Fel! <strong>0 poäng</strong><br>
+                        Rätt svar: <strong>${direction === 'sv-en' ? word.english : word.swedish}</strong><br>
+                        <small>${word.swedish} = ${word.english}</small>
+                    </div>
+                `;
+            }
+
+            document.getElementById('quizArea').insertAdjacentHTML('afterbegin', feedbackHtml);
+            
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 2500);
+        };
+
+        // Hjälpfunktion för att kolla om två strängar är lika (med liten marginal för felstavning)
+        function isSimilar(str1, str2) {
+            // Ta bort extra mellanslag och special-tecken
+            const clean1 = str1.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+            const clean2 = str2.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim();
+            
+            if (clean1 === clean2) return true;
+            
+            // Levenshtein distance - tillåt 1-2 fel beroende på längd
+            const distance = levenshteinDistance(clean1, clean2);
+            const maxErrors = clean2.length <= 4 ? 1 : 2;
+            
+            return distance <= maxErrors && distance > 0;
+        }
+
+        // Beräkna Levenshtein distance (antal ändringar för att göra två strängar lika)
+        function levenshteinDistance(str1, str2) {
+            const matrix = [];
+            
+            for (let i = 0; i <= str2.length; i++) {
+                matrix[i] = [i];
+            }
+            
+            for (let j = 0; j <= str1.length; j++) {
+                matrix[0][j] = j;
+            }
+            
+            for (let i = 1; i <= str2.length; i++) {
+                for (let j = 1; j <= str1.length; j++) {
+                    if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            
+            return matrix[str2.length][str1.length];
+        }
+
+        window.skipQuestion = function() {
+            totalAnswered++;
+            currentQuestionIndex++;
+            document.getElementById('clueArea').innerHTML = '';
+            showQuestion();
+        };
+
+        window.handleEnter = function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        };
+
+        window.updateScore = function() {
+            const maxPossibleScore = currentWords.length;
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            if (scoreDisplay) {
+                const displayScore = score % 1 === 0 ? score : score.toFixed(1);
+                scoreDisplay.textContent = 
+                    `Poäng: ${displayScore} rätt | Fråga ${currentQuestionIndex + 1} av ${currentWords.length}`;
+            }
+        };
+
+        window.showFinalScore = function() {
+            const percentage = totalAnswered > 0 ? Math.round((score / currentWords.length) * 100) : 0;
+            const fullCorrect = currentWords.length - wrongAnswers.length - partialAnswers.length;
+            
+            const result = {
+                date: new Date().toLocaleDateString('sv-SE'),
+                time: new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }),
+                week: currentWeek,
+                score: score,
+                maxScore: currentWords.length,
+                percentage: percentage,
+                direction: direction === 'sv-en' ? 'Svenska → Engelska' : 'Engelska → Svenska'
+            };
+            
+            results[currentUser].push(result);
+            saveResults();
+            
+            let html = `
+                <div class="question-card">
+                    <h2 style="text-align: center; background: linear-gradient(135deg, #FF6B6B, #4ECDC4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 2.5em; font-weight: 800;">🎉 Klart!</h2>
+                    <p style="text-align: center; font-size: 1.5em; margin: 20px 0;">
+                        Du fick <strong>${score}</strong> av ${currentWords.length} poäng (${percentage}%)
+                    </p>
+                    <div style="background: rgba(78, 205, 196, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                        <div style="font-size: 0.9em; color: #666;">
+                            ✅ Helt rätt: <strong>${fullCorrect}</strong><br>
+                            ⚠️ Nästan rätt: <strong>${partialAnswers.length}</strong> (0.5p vardera)<br>
+                            ❌ Fel: <strong>${wrongAnswers.length}</strong>
+                        </div>
+                    </div>
+            `;
+
+            // Visa fel svar om det finns några
+            if (wrongAnswers.length > 0) {
+                html += `
+                    <div style="background: rgba(220, 53, 69, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                        <h3 style="color: #dc3545; margin-bottom: 10px; font-size: 1.1em;">❌ Helt fel (${wrongAnswers.length} st):</h3>
+                `;
+                wrongAnswers.forEach(item => {
+                    html += `
+                        <div style="background: white; padding: 10px; margin: 5px 0; border-radius: 8px; border-left: 4px solid #dc3545;">
+                            <strong>${item.question}</strong> →
+                            <span style="color: #dc3545; text-decoration: line-through;">${item.userAnswer || '(inget svar)'}</span>
+                            <span style="color: #28a745;"> ✓ ${item.correctAnswer}</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // Visa nästan rätt svar om det finns några
+            if (partialAnswers.length > 0) {
+                html += `
+                    <div style="background: rgba(255, 193, 7, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                        <h3 style="color: #ffc107; margin-bottom: 10px; font-size: 1.1em;">⚠️ Nästan rätt - öva stavningen (${partialAnswers.length} st):</h3>
+                `;
+                partialAnswers.forEach(item => {
+                    html += `
+                        <div style="background: white; padding: 10px; margin: 5px 0; border-radius: 8px; border-left: 4px solid #ffc107;">
+                            <strong>${item.question}</strong> →
+                            <span style="color: #856404;">${item.userAnswer}</span>
+                            <span style="color: #28a745;"> ✓ ${item.correctAnswer}</span>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            html += `<div style="text-align: center; margin-top: 20px;">`;
+            
+            if (wrongAnswers.length > 0 || partialAnswers.length > 0) {
+                html += `<button class="btn-primary" onclick="practiceErrors()" style="margin: 5px;">🔄 Öva på fel</button>`;
+            }
+            
+            html += `
+                <button class="btn-primary" onclick="startQuiz()" style="margin: 5px;">Träna igen</button>
+                <button class="btn-secondary" onclick="backToWeeks()" style="margin: 5px;">Byt vecka</button>
+            </div>
+            </div>
+            `;
+
+            document.getElementById('quizArea').innerHTML = html;
+        };
+
+        window.practiceErrors = function() {
+            // Skapa en ny lista med bara fel och nästan-rätt ord
+            const errorWords = [];
+            
+            wrongAnswers.forEach(item => {
+                errorWords.push(item.word);
+            });
+            
+            partialAnswers.forEach(item => {
+                errorWords.push(item.word);
+            });
+
+            // Blanda och starta quiz med bara dessa ord
+            currentWords = errorWords.sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+            score = 0;
+            totalAnswered = 0;
+            wrongAnswers = [];
+            partialAnswers = [];
+            
+            showQuestion();
+        };
+
+        window.showAdmin = function() {
+            document.querySelectorAll('.user-select button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('quizSection').classList.add('hidden');
+            document.getElementById('adminSection').classList.remove('hidden');
+            document.getElementById('progressSection').classList.add('hidden');
+            displayWordList();
+        };
+
+        window.showProgress = function() {
+            document.querySelectorAll('.user-select button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('quizSection').classList.add('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('progressSection').classList.remove('hidden');
+            displayProgress();
+        };
+
+        window.displayProgress = function() {
+            const user = document.getElementById('progressUser').value;
+            const displayDiv = document.getElementById('progressDisplay');
+            
+            if (results[user].length === 0) {
+                displayDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Inga resultat än. Börja träna för att se framsteg!</p>';
+                return;
+            }
+
+            const byWeek = {};
+            results[user].forEach(result => {
+                if (!byWeek[result.week]) byWeek[result.week] = [];
+                byWeek[result.week].push(result);
+            });
+
+            let html = '';
+            
+            Object.keys(byWeek).sort().reverse().forEach(week => {
+                const weekResults = byWeek[week];
+                const attempts = weekResults.length;
+                const avgScore = (weekResults.reduce((sum, r) => sum + r.percentage, 0) / attempts).toFixed(0);
+                const bestScore = Math.max(...weekResults.map(r => r.percentage));
+                const latestScore = weekResults[weekResults.length - 1].percentage;
+
+                html += `
+                    <div class="progress-card">
+                        <h3 style="color: #FF6B6B; margin-bottom: 15px;">${week}</h3>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">Antal försök</div>
+                                <div class="stat-value">${attempts}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Genomsnitt</div>
+                                <div class="stat-value">${avgScore}%</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Bästa resultat</div>
+                                <div class="stat-value">${bestScore}%</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Senaste resultat</div>
+                                <div class="stat-value">${latestScore}%</div>
+                            </div>
+                        </div>
+                        <div class="results-history">
+                            <h4 style="margin: 15px 0 10px 0; color: #666;">Historik:</h4>
+                `;
+
+                weekResults.reverse().forEach(result => {
+                    const scoreColor = result.percentage >= 80 ? '#28a745' : result.percentage >= 60 ? '#ffc107' : '#dc3545';
+                    html += `
+                        <div class="history-item">
+                            <span>${result.date} ${result.time}</span>
+                            <span>${result.direction}</span>
+                            <span style="color: ${scoreColor}; font-weight: bold;">${result.score}/${result.maxScore} (${result.percentage}%)</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            displayDiv.innerHTML = html;
+        };
+
+        window.resetProgress = function() {
+            const user = document.getElementById('progressUser').value;
+            const userName = user === 'ebbe' ? 'Ebbe' : 'Tove';
+            
+            if (confirm(`Är du säker på att du vill radera alla framsteg för ${userName}? Detta går inte att ångra.`)) {
+                results[user] = [];
+                saveResults();
+                displayProgress();
+                alert(`Framsteg för ${userName} har raderats.`);
+            }
+        };
+
+        window.addWord = function() {
+            const user = document.getElementById('adminUser').value;
+            const week = document.getElementById('weekInput').value;
+            const swedish = document.getElementById('swedishWord').value;
+            const english = document.getElementById('englishWord').value;
+            const clue = document.getElementById('clueInput').value;
+
+            if (!week || !swedish || !english) {
+                alert('Fyll i vecka, svenska och engelska ord!');
+                return;
+            }
+
+            vocabulary[user].push({ week, swedish, english, clue: clue || '' });
+            saveVocabulary();
+            
+            document.getElementById('weekInput').value = week;
+            document.getElementById('swedishWord').value = '';
+            document.getElementById('englishWord').value = '';
+            document.getElementById('clueInput').value = '';
+            document.getElementById('swedishWord').focus();
+            
+            displayWordList();
+        };
+
+        window.displayWordList = function() {
+            const user = document.getElementById('adminUser').value;
+            const listElement = document.getElementById('wordList');
+            
+            if (!vocabulary[user] || !Array.isArray(vocabulary[user]) || vocabulary[user].length === 0) {
+                listElement.innerHTML = '<p style="text-align: center; color: #999;">Inga glosor tillagda än</p>';
+                return;
+            }
+
+            let html = '<h3 style="background: linear-gradient(135deg, #FF6B6B, #4ECDC4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 15px; font-weight: 800;">Glosor för ' + 
+                       (user === 'ebbe' ? 'Ebbe' : 'Tove') + '</h3>';
+            
+            const byWeek = {};
+            vocabulary[user].forEach((word, index) => {
+                if (!byWeek[word.week]) byWeek[word.week] = [];
+                byWeek[word.week].push({...word, globalIndex: index});
+            });
+
+            Object.keys(byWeek).sort().forEach(week => {
+                html += `<h4 style="margin-top: 20px; margin-bottom: 10px; color: #FF6B6B;">${week}</h4>`;
+                byWeek[week].forEach((word, weekIndex) => {
+                    const clueText = word.clue ? ` 💡 "${word.clue}"` : '';
+                    html += `
+                        <div class="word-item">
+                            <span><strong>#${weekIndex + 1}:</strong> ${word.swedish} - ${word.english}${clueText}</span>
+                            <button class="delete-btn" onclick="deleteWord('${user}', ${word.globalIndex})">Ta bort</button>
+                        </div>
+                    `;
+                });
+            });
+
+            listElement.innerHTML = html;
+        };
+
+        window.deleteWord = function(user, index) {
+            vocabulary[user].splice(index, 1);
+            saveVocabulary();
+            displayWordList();
+        };
+
+        window.resetDatabase = async function() {
+            if (!confirm('⚠️ VARNING! Detta kommer radera ALLA glosor och resultat för BÅDA användare och återställa till startläge. Är du säker?')) {
+                return;
+            }
+            if (!confirm('Är du VERKLIGEN säker? Detta går inte att ångra!')) {
+                return;
+            }
+            
+            try {
+                showSyncStatus();
+                
+                // STEG 1: Radera ALL data från Firebase först
+                await remove(ref(database, 'vocabulary'));
+                await remove(ref(database, 'results'));
+                console.log('Firebase cleared');
+                
+                // STEG 2: Sätt ny ren data lokalt
+                vocabulary = {
+                    ebbe: [],
+                    tove: [
+                        { week: "Vecka 4", swedish: "jag letar efter", english: "I'm looking for", clue: "" },
+                        { week: "Vecka 4", swedish: "kjol", english: "skirt", clue: "" },
+                        { week: "Vecka 4", swedish: "kläder", english: "clothes", clue: "" },
+                        { week: "Vecka 4", swedish: "prova", english: "try on", clue: "" },
+                        { week: "Vecka 4", swedish: "tajt", english: "tight", clue: "" },
+                        { week: "Vecka 4", swedish: "storlek", english: "size", clue: "" },
+                        { week: "Vecka 4", swedish: "önska", english: "wish", clue: "" },
+                        { week: "Vecka 4", swedish: "vet du det?", english: "do you know that?", clue: "" },
+                        { week: "Vecka 4", swedish: "passa", english: "suit", clue: "" },
+                        { week: "Vecka 4", swedish: "Skämtar du?", english: "Are you kidding?", clue: "" },
+                        { week: "Vecka 4", swedish: "överdel", english: "top", clue: "" },
+                        { week: "Vecka 4", swedish: "halsduk", english: "scarf", clue: "" },
+                        { week: "Vecka 4", swedish: "provrum", english: "fitting room", clue: "" },
+                        { week: "Vecka 4", swedish: "där borta", english: "over there", clue: "" },
+                        { week: "Vecka 4", swedish: "några fler", english: "any more", clue: "" },
+                        { week: "Vecka 4", swedish: "för kort", english: "too short", clue: "" },
+                        { week: "Vecka 4", swedish: "i min storlek", english: "in my size", clue: "" },
+                        { week: "Vecka 4", swedish: "ta bussen", english: "catch a bus", clue: "" },
+                        { week: "Vecka 4", swedish: "värld", english: "world", clue: "" },
+                        { week: "Vecka 4", swedish: "den bästa som finns", english: "the best there is", clue: "" }
+                    ]
+                };
+                results = {
+                    ebbe: [],
+                    tove: []
+                };
+                
+                window.vocabulary = vocabulary;
+                window.results = results;
+                
+                // STEG 3: Skriv den rena datan till Firebase
+                await set(ref(database, 'vocabulary'), vocabulary);
+                await set(ref(database, 'results'), results);
+                
+                console.log('Clean data saved to Firebase');
+                
+                alert('✅ Databasen har återställts!\n\nEbbe: 0 glosor\nTove: Vecka 4 (20 glosor)\n\nLadda om sidan för att se ändringarna.');
+                displayWordList();
+                hideSyncStatus();
+                
+                // Ladda om sidan för att synka rätt
+                setTimeout(() => location.reload(), 2000);
+            } catch (error) {
+                console.error('Error resetting database:', error);
+                alert('Kunde inte återställa databasen: ' + error.message);
+                hideSyncStatus();
+            }
+        };
+
+        document.getElementById('adminUser').addEventListener('change', displayWordList);
+
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed'));
+        }
+    </script>
+</body>
+</html>
